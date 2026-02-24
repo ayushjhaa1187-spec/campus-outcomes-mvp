@@ -1,5 +1,4 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const College = require('../models/College');
 const router = express.Router();
@@ -14,7 +13,7 @@ router.post('/register', async (req, res) => {
     }
     const user = new User({ email, password, name, collegeId: college._id });
     await user.save();
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
+    const token = user.generateAuthToken();
     res.json({ token, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -28,7 +27,7 @@ router.post('/login', async (req, res) => {
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
+    const token = user.generateAuthToken();
     res.json({ token, user });
   } catch (error) {
     res.status(400).json({ error: error.message });
