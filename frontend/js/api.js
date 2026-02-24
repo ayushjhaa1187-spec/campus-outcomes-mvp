@@ -36,4 +36,3 @@ const register = async (email, password, name, collegeName) => {
   return data;
 };
 
-const getHealthCheck = () => apiCall('/health');
