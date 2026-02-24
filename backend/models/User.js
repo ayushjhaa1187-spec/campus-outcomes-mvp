@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
   collegeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'College',
-    required: true
+    required: true,
+    index: true
   },
   name: {
     type: String,
