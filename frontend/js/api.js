@@ -20,20 +20,21 @@ const apiCall = async (endpoint, method = 'GET', body = null) => {
   return response.json();
 };
 
-const login = async (email, password) => {
-  const data = await apiCall('/auth/login', 'POST', { email, password });
+const handleAuthResponse = (data) => {
   if (data.token) {
     localStorage.setItem('token', data.token);
   }
   return data;
 };
 
+const login = async (email, password) => {
+  const data = await apiCall('/auth/login', 'POST', { email, password });
+  return handleAuthResponse(data);
+};
+
 const register = async (email, password, name, collegeName) => {
   const data = await apiCall('/auth/register', 'POST', { email, password, name, collegeName });
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-  }
-  return data;
+  return handleAuthResponse(data);
 };
 
 const getHealthCheck = () => apiCall('/health');
