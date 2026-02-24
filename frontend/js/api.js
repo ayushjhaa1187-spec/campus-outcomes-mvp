@@ -1,4 +1,20 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const getApiBaseUrl = () => {
+  // Check for global configuration first
+  if (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) {
+    return window.APP_CONFIG.API_BASE_URL;
+  }
+
+  // Check hostname
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+
+  // Default to relative path for production
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const apiCall = async (endpoint, method = 'GET', body = null) => {
   const token = localStorage.getItem('token');
