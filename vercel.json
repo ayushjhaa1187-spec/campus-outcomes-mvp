@@ -1,16 +1,15 @@
 {
   "version": 2,
-  "public": true,
-  "buildCommand": "echo 'Static site - no build needed'",
-  "outputDirectory": ".",
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
     }
   ]
 }
