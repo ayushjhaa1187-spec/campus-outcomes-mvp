@@ -37,3 +37,14 @@ const register = async (email, password, name, collegeName) => {
 };
 
 const getHealthCheck = () => apiCall('/health');
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    API_BASE_URL,
+    apiCall,
+    login,
+    register,
+    getHealthCheck
+  };
+}
