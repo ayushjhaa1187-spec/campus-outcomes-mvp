@@ -7,11 +7,16 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name, collegeName } = req.body;
-    let college = await College.findOne({ name: collegeName });
-    if (!college) {
-      college = new College({ name: collegeName, code: collegeName.substring(0, 4).toUpperCase() });
-      await college.save();
-    }
+    const college = await College.findOneAndUpdate(
+      { name: collegeName },
+      {
+        $setOnInsert: {
+          name: collegeName,
+          code: collegeName.substring(0, 4).toUpperCase()
+        }
+      },
+      { upsert: true, new: true }
+    );
     const user = new User({ email, password, name, collegeId: college._id });
     await user.save();
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
