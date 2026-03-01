@@ -13,7 +13,9 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -23,7 +25,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Campus Outcomes MVP is running' });
 });
 
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
