@@ -7,6 +7,27 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name, collegeName } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email is required and must be a string' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Password is required and must be a string' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Name is required and must be a non-empty string' });
+    }
+    if (!collegeName || typeof collegeName !== 'string' || collegeName.trim() === '') {
+      return res.status(400).json({ error: 'College name is required and must be a non-empty string' });
+    }
+
     let college = await College.findOne({ name: collegeName });
     if (!college) {
       college = new College({ name: collegeName, code: collegeName.substring(0, 4).toUpperCase() });
@@ -24,6 +45,14 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email is required and must be a string' });
+    }
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Password is required and must be a string' });
+    }
+
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
