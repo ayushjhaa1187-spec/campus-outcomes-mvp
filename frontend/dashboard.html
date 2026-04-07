@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Campus Outcomes MVP</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Placement Dashboard</h1>
+            <div class="user-info">
+                <span id="userName">User</span> | <button onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <div class="college-details card">
+            <h2>College Overview</h2>
+            <div id="collegeInfo">Loading...</div>
+        </div>
+
+        <div class="actions">
+            <button onclick="showAddForm()" class="btn">Add New Placement</button>
+        </div>
+
+        <div id="addPlacementForm" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span onclick="hideAddForm()" class="close">&times;</span>
+                <h3>Add Placement Record</h3>
+                <form id="placementForm">
+                    <input type="text" id="p_studentName" placeholder="Student Name" required>
+                    <input type="text" id="p_branch" placeholder="Branch (e.g., CSE)" required>
+                    <input type="number" id="p_batch" placeholder="Batch (Year)" required>
+                    <input type="text" id="p_company" placeholder="Company Name" required>
+                    <input type="number" id="p_ctc" placeholder="CTC (LPA)" required step="0.1">
+                    <select id="p_status">
+                        <option value="Placed">Placed</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Not Placed">Not Placed</option>
+                    </select>
+                    <button type="submit" class="btn">Save</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="placements-list card">
+            <h2>Recent Placements</h2>
+            <table id="placementsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Branch</th>
+                        <th>Company</th>
+                        <th>CTC (LPA)</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="placementsBody">
+                    <!-- Data here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('userName').textContent = user.name || 'User';
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        async function loadDashboard() {
+            try {
+                // Load College Details
+                const college = await window.api.getCollegeDetails();
+                document.getElementById('collegeInfo').innerHTML = `
+                    <p><strong>Name:</strong> ${college.name}</p>
+                    <p><strong>Code:</strong> ${college.code}</p>
+                    <p><strong>NIRF Ranking:</strong> ${college.nirfRanking || 'N/A'}</p>
+                `;
+
+                // Load Placements
+                const placements = await window.api.getPlacements();
+                const tbody = document.getElementById('placementsBody');
+                tbody.innerHTML = '';
+                placements.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${p.name || p.studentId || 'N/A'}</td>
+                        <td>${p.branch}</td>
+                        <td>${p.companyName}</td>
+                        <td>${p.ctcLpa}</td>
+                        <td>${p.status}</td>
+                        <td>${new Date(p.placementDate || p.uploadedAt).toLocaleDateString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                if (error.message.includes('token') || error.message.includes('401')) {
+                    logout();
+                }
+            }
+        }
+
+        document.getElementById('placementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('p_studentName').value,
+                branch: document.getElementById('p_branch').value,
+                batch: parseInt(document.getElementById('p_batch').value),
+                companyName: document.getElementById('p_company').value,
+                ctcLpa: parseFloat(document.getElementById('p_ctc').value),
+                status: document.getElementById('p_status').value,
+                placementDate: new Date()
+            };
+
+            try {
+                await window.api.addPlacement(data);
+                hideAddForm();
+                loadDashboard(); // Refresh
+                e.target.reset();
+            } catch (error) {
+                alert('Error adding placement: ' + error.message);
+            }
+        });
+
+        function showAddForm() { document.getElementById('addPlacementForm').style.display = 'block'; }
+        function hideAddForm() { document.getElementById('addPlacementForm').style.display = 'none'; }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
